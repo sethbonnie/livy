@@ -1,0 +1,27 @@
+{
+  "name": "livy",
+  "version": "0.1.0",
+  "description": "A logging data structure",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sethbonnie/livy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sethbonnie/livy/issues"
+  },
+  "homepage": "https://github.com/sethbonnie/livy#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-jest": "^22.0.4",
+    "babel-preset-env": "^1.6.1",
+    "jest": "^22.0.4",
+    "regenerator-runtime": "^0.11.1"
+  }
+}
