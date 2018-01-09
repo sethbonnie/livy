@@ -1,9 +1,17 @@
 import History from './history';
 
-describe('count()', () => {
+// Helper used to vary insertion time
+const delay = () => {
+  for (let i = 0, a = []; i < 300000; i += 1) {
+    a.push(i);
+    a.shift();
+  }
+}
+
+describe('size()', () => {
   test('initially 0', () => {
     const log = new History();
-    expect(log.count()).toEqual(0);
+    expect(log.size()).toEqual(0);
   });
 
   test('returns the number of items currently in the log', () => {
@@ -11,33 +19,153 @@ describe('count()', () => {
     for (let i = 0; i < 5; i++) {
       log.insert('a');
     }
-    expect(log.count()).toEqual(5);
+    expect(log.size()).toEqual(5);
   });
 
-  test('count never goes past the limit', () => {
+  test('size never goes past the limit', () => {
     const limit = 10;
     const log = new History({ limit });
     for (let i = 0; i < limit + 5; i++) {
       log.insert('a');
     }
-    expect(log.count()).toEqual(limit);
+    expect(log.size()).toEqual(limit);
   });
 });
 
 describe('import(serializedLog)', () => {
-  test('throws and reverts when serialized log is invalid');
+  describe('throws and reverts when serialized log is invalid', () => {
+    const log = new History();
 
-  test('merges given log from the front (latest) up to limit');
+    test('non array', () => {
+      expect(() => log.import('')).toThrow();
+      expect(() => log.import('{timestamp: "", data: "", id: 2342}')).toThrow();
+    });
 
-  test('returns the new log');
+    test('without id', () => {
+      const withoutId = JSON.stringify([
+        { timestamp: '2018-01-09T17:20:49.814Z', data: 'test' },
+      ]);
+      expect(() => log.import(withoutId)).toThrow();
+    });
+
+    test('without data', () => {
+      const withoutData = JSON.stringify([
+        { id: 1515518449814, timestamp: '2018-01-09T17:20:49.814Z' },
+      ]);
+      expect(() => log.import(withoutData)).toThrow();
+    });
+
+    test('without timestamp', () => {
+      const withoutTimestamp = JSON.stringify([
+        { id: 1515518449814, data: 'test' },
+      ]);
+      expect(() => log.import(withoutTimestamp)).toThrow();
+    });
+  });
+
+  test('merges given log from the front (latest) up to limit', () => {
+    const log1 = new History({ limit: 5 });
+    const log2 = new History();
+    const data = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'].reverse();
+
+    for (let i = 0; i < 10; i += 1) {
+      if (i % 2 == 0) {
+        log1.insert(data[i]);
+      } else {
+        log2.insert(data[i]);
+      }
+      // introduce some compute time to vary the insertion times
+      delay();
+    }
+
+    expect(log1.newest().data).toEqual('b');
+    expect(log2.newest().data).toEqual('a');
+
+    log1.import(log2.serialize());
+    expect(log1.size()).toEqual(5);
+
+    const array1 = log1.toArray();
+    expect(array1[0].data).toEqual('a');
+    expect(array1[1].data).toEqual('b');
+  });
+
+  test('returns the new log in array form', () => {
+    const data = JSON.stringify([
+      { id: 1515518449814, timestamp: '2018-01-09T17:20:49.814Z', data: 'test' },
+    ]);
+    const log = new History();
+    const result = log.import(data);
+    expect(result.length).toEqual(1);
+    expect(result[0].data).toEqual('test');
+  });
 });
 
 describe('import(arrayOfLogItems)', () => {
-  test('throws and reverts when one of the items does not conform to log shape');
+  describe('throws on invalid input', () => {
+    const log = new History();
 
-  test('merges given log from the front (latest) up to limit');
+    test('non array', () => {
+      expect(() => log.import('')).toThrow();
+      expect(() => log.import({timestamp: "", data: "", id: 2342})).toThrow();
+    });
 
-  test('returns the new log');
+    test('without id', () => {
+      const withoutId = [
+        { timestamp: '2018-01-09T17:20:49.814Z', data: 'test' },
+      ];
+      expect(() => log.import(withoutId)).toThrow();
+    });
+
+    test('without data', () => {
+      const withoutData = [
+        { id: 1515518449814, timestamp: '2018-01-09T17:20:49.814Z' },
+      ];
+      expect(() => log.import(withoutData)).toThrow();
+    });
+
+    test('without timestamp', () => {
+      const withoutTimestamp = [
+        { id: 1515518449814, data: 'test' },
+      ];
+      expect(() => log.import(withoutTimestamp)).toThrow();
+    });
+  });
+
+  test('merges given log from the front (latest) up to limit', () => {
+    const log1 = new History({ limit: 5 });
+    const log2 = new History();
+    const data = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'].reverse();
+
+    for (let i = 0; i < 10; i += 1) {
+      if (i % 2 == 0) {
+        log1.insert(data[i]);
+      } else {
+        log2.insert(data[i]);
+      }
+      // introduce some compute time to vary the insertion times
+      delay();
+    }
+
+    expect(log1.newest().data).toEqual('b');
+    expect(log2.newest().data).toEqual('a');
+
+    log1.import(log2.toArray());
+    expect(log1.size()).toEqual(5);
+
+    const array1 = log1.toArray();
+    expect(array1[0].data).toEqual('a');
+    expect(array1[1].data).toEqual('b');
+  });
+
+  test('returns the new log in array form', () => {
+    const data = [
+      { id: 1515518449814, timestamp: '2018-01-09T17:20:49.814Z', data: 'test' },
+    ];
+    const log = new History();
+    const result = log.import(data);
+    expect(result.length).toEqual(1);
+    expect(result[0].data).toEqual('test');
+  });
 });
 
 describe('insert(obj)', () => {
@@ -72,7 +200,7 @@ describe('insert(obj)', () => {
     const oldA = log.insert('b');
     oldA.push('c');
     oldA.unshift('d');
-    expect(log.count()).toEqual(2);
+    expect(log.size()).toEqual(2);
     expect(log.newest().data).toEqual('b');
   });
 });
@@ -179,7 +307,18 @@ describe('serialize([start], [end])', () => {
   });
 
   describe('b.import(a.serialize) -> b.serialize', () => {
-    test('both logs should be equal');
+    test('both logs should be equal', () => {
+      const logA = new History();
+      const logB = new History();
+      const data = ['a', 'b', 'c', 'd', 'e'];
+
+      data.forEach((item) => {
+        logA.insert(item);
+      });
+      logB.import(logA.serialize());
+      expect(logA.size()).toEqual(data.length);
+      expect(logA.serialize()).toEqual(logB.serialize());
+    });
   });
 });
 
@@ -257,6 +396,17 @@ describe('toArray([start], [end])', () => {
   });
 
   describe('b.import(a.toArray) -> b.toArray', () => {
-    test('both logs should be equal');
+    test('both logs should be equal', () => {
+      const logA = new History();
+      const logB = new History();
+      const data = ['a', 'b', 'c', 'd', 'e'];
+
+      data.forEach((item) => {
+        logA.insert(item);
+      });
+      logB.import(logA.toArray());
+      expect(logA.size()).toEqual(data.length);
+      expect(logA.toArray()).toEqual(logB.toArray());
+    });
   });
 });

@@ -4,8 +4,29 @@ class History {
     this._limit = options.limit || 100;
   }
 
-  count() {
-    return this._log.length;
+  import(rawData) {
+    let data;
+    if (typeof rawData === 'string') {
+      data = JSON.parse(rawData);
+    } else {
+      data = rawData;
+    }
+
+    if (!(data instanceof Array)) {
+      throw new Error('Argument to import must be in array form whether stringified or parsed.');
+    }
+
+    data.forEach((item, index) => {
+      const keys = Object.keys(item);
+      if (!keys.includes('id') || !keys.includes('timestamp') || !keys.includes('data')) {
+        throw new Error(`Check the shape of the item at index ${index} of imported array.\n` +
+          'It must include the keys "id", "data", and "timestamp".');
+      }
+      this._log.push(item);
+    });
+    this._log.sort((a, b) => b.id - a.id);
+    this._log = this._log.slice(0, this._limit);
+    return this.toArray();
   }
 
   insert(item) {
@@ -50,6 +71,10 @@ class History {
     this._limit = Math.floor(newLimit);
 
     return this._limit;
+  }
+
+  size() {
+    return this._log.length;
   }
 
   toArray(start, end) {
