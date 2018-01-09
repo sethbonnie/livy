@@ -25,7 +25,7 @@ describe('count()', () => {
 });
 
 describe('import(serializedLog)', () => {
-  test('throws and revers when serialized log is invalid');
+  test('throws and reverts when serialized log is invalid');
 
   test('merges given log from the front (latest) up to limit');
 
@@ -176,18 +176,49 @@ describe('setLimit(new limit)', () => {
 });
 
 describe('toArray([start], [end])', () => {
+  const log = new History({ limit: 5 });
+  const data = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+  data.forEach((item) => {
+    log.insert(item);
+  });
+
+  test('returns an empty array when the log is empty', () => {
+    const emptyLog = new History();
+    expect(emptyLog.toArray()).toEqual([]);
+  });
+
   describe('toArray()', () => {
-    test('returns every item in the log from start up to limit');
+    test('returns every item in the log from start up to limit', () => {
+      const result = log.toArray();
+      expect(result.length).toEqual(5);
+      expect(result[0].data).toEqual('g');
+      expect(result[2].data).toEqual('e');
+    });
   });
 
   describe('toArray(start)', () => {
-    test('returns items from start up to the limit');
+    test('returns items from start up to the limit (inclusive)', () => {
+      const result = log.toArray(3);
+      expect(result.length).toEqual(2);
+      expect(result[0].data).toEqual('d');
+      expect(result[1].data).toEqual('c');
+    });
   });
 
   describe('toArray(start, end)', () => {
-    test('returns items from start to end');
+    test('returns items from start index up to but not including end', () => {
+      const result = log.toArray(1, 3);
+      expect(result.length).toEqual(2);
+      expect(result[0].data).toEqual('f');
+      expect(result[1].data).toEqual('e');
+    });
 
-    test('returns items from start to limit if end > limit');
+    test('returns items from start to limit if end > limit', () => {
+      const result = log.toArray(3, 7);
+      expect(result.length).toEqual(2);
+      expect(result[0].data).toEqual('d');
+      expect(result[1].data).toEqual('c');
+    });
   });
 
   describe('b.import(a.toArray) -> b.toArray', () => {

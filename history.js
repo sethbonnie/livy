@@ -47,6 +47,10 @@ class History {
 
     return this._limit;
   }
+
+  toArray(start, end) {
+    return this._log.slice(start, end);
+  }
 }
 
 module.exports = History;
