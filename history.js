@@ -39,6 +39,10 @@ class History {
     return this._log[this._log.length - 1];
   }
 
+  serialize(start, end) {
+    return JSON.stringify(this._log.slice(start, end));
+  }
+
   setLimit(newLimit) {
     if (typeof newLimit !== 'number' || newLimit < 1) {
       throw new Error('newLimit must be a positive number');

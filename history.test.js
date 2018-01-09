@@ -129,18 +129,53 @@ describe('oldest()', () => {
 });
 
 describe('serialize([start], [end])', () => {
+  const log = new History({ limit: 5 });
+  const data = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+  data.forEach((item) => {
+    log.insert(item);
+  });
+
+  test('returns an empty array when the log is empty', () => {
+    const emptyLog = new History();
+    expect(emptyLog.serialize()).toEqual('[]');
+  });
+
   describe('serialize()', () => {
-    test('returns every item in the log from start up to limit');
+    test('returns every item in the log from start up to limit', () => {
+      const rawResult = log.serialize();
+      const parsedResult = JSON.parse(rawResult);
+      expect(parsedResult.length).toEqual(5);
+      expect(parsedResult[0].data).toEqual('g');
+      expect(parsedResult[2].data).toEqual('e');
+    });
   });
 
   describe('serialize(start)', () => {
-    test('returns items from start up to the limit');
+    test('returns items from start up to the limit', () => {
+      const rawResult = log.serialize(3);
+      const parsedResult = JSON.parse(rawResult);
+      expect(parsedResult.length).toEqual(2);
+      expect(parsedResult[0].data).toEqual('d');
+      expect(parsedResult[1].data).toEqual('c');
+    });
   });
 
   describe('serialize(start, end)', () => {
-    test('returns items from start to end');
+    test('returns items from start to end', () => {
+      const rawResult = log.serialize(1, 3);
+      const parsedResult = JSON.parse(rawResult);
+      expect(parsedResult.length).toEqual(2);
+      expect(parsedResult[0].data).toEqual('f');
+      expect(parsedResult[1].data).toEqual('e');
+    });
 
-    test('returns items from start to limit if end > limit');
+    test('returns items from start to limit if end > limit', () => {
+      const rawResult = log.serialize(3, 7);
+      const parsedResult = JSON.parse(rawResult);
+      expect(parsedResult.length).toEqual(2);
+      expect(parsedResult[0].data).toEqual('d');
+      expect(parsedResult[1].data).toEqual('c');
+    });
   });
 
   describe('b.import(a.serialize) -> b.serialize', () => {
