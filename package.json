@@ -1,6 +1,6 @@
 {
   "name": "livy",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A logging data structure",
   "main": "index.js",
   "scripts": {
