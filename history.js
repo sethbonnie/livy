@@ -69,6 +69,7 @@ class History {
       throw new Error('newLimit must be a positive number');
     }
     this._limit = Math.floor(newLimit);
+    this._log = this._log.slice(0, this._limit);
 
     return this._limit;
   }

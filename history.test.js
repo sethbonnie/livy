@@ -347,6 +347,19 @@ describe('setLimit(new limit)', () => {
     expect(log.setLimit(10.3)).toEqual(10);
     expect(log.limit()).toEqual(10);
   });
+
+  test('truncates the log to the new limit if size() > newLimit', () => {
+    const log = new History();
+    const data = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+    data.forEach(item => {
+      log.insert(item);
+    });
+    const newLimit = 3;
+
+    log.setLimit(newLimit);
+    expect(log.limit()).toEqual(newLimit);
+    expect(log.size()).toEqual(newLimit);
+  });
 });
 
 describe('toArray([start], [end])', () => {
