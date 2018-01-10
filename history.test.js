@@ -1,4 +1,4 @@
-import History from './history';
+import History from '.';
 
 // Helper used to vary insertion time
 const delay = () => {
