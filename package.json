@@ -6,7 +6,8 @@
   "scripts": {
     "build": "webpack -p",
     "test": "jest",
-    "preversion": "npm test && npm run build",
+    "preversion": "npm test",
+    "version": "npm run build && git add index.js",
     "postversion": "git push && git push --tags"
   },
   "repository": {
