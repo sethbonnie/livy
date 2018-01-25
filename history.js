@@ -18,31 +18,35 @@ class History {
 
     data.forEach((item, index) => {
       const keys = Object.keys(item);
-      if (!keys.includes('id') || !keys.includes('timestamp') || !keys.includes('data')) {
+      if (!keys.includes('type') || !keys.includes('timestamp') || !keys.includes('data')) {
         throw new Error(`Check the shape of the item at index ${index} of imported array.\n` +
-          'It must include the keys "id", "data", and "timestamp".');
+          'It must include the keys "type", "data", and "timestamp".');
       }
       this._log.push(item);
     });
-    this._log.sort((a, b) => b.id - a.id);
+    this._log.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     this._log = this._log.slice(0, this._limit);
     return this.toArray();
   }
 
-  insert(item) {
-    if (!item ||
-        (typeof item !== 'object' && typeof item !== 'string') ||
-        typeof item == 'string' && item.length  === 0
+  insert(entryType, payload) {
+    if (typeof entryType !== 'string') {
+      throw new Error('type must be a string');
+    }
+
+    if (!payload ||
+        (typeof payload !== 'object' && typeof payload !== 'string') ||
+        typeof payload == 'string' && payload.length  === 0
       ) {
-      throw new Error('Item must be an object or non-empty string');
+      throw new Error('payload must be an object or non-empty string');
     }
 
     const inserted = new Date();
     const oldLog = this._log;
     const newLog = [{
-      id: inserted.getTime(),
+      type: entryType,
       timestamp: inserted.toISOString(),
-      data: item,
+      data: payload,
     }].concat(oldLog);
     this._log = newLog.slice(0, this._limit);
     return oldLog;

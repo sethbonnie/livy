@@ -8,6 +8,8 @@ const delay = () => {
   }
 }
 
+const ENTRY_TYPE = 'test.type';
+
 describe('size()', () => {
   test('initially 0', () => {
     const log = new History();
@@ -17,7 +19,7 @@ describe('size()', () => {
   test('returns the number of items currently in the log', () => {
     const log = new History();
     for (let i = 0; i < 5; i++) {
-      log.insert('a');
+      log.insert(ENTRY_TYPE, 'a');
     }
     expect(log.size()).toEqual(5);
   });
@@ -26,7 +28,7 @@ describe('size()', () => {
     const limit = 10;
     const log = new History({ limit });
     for (let i = 0; i < limit + 5; i++) {
-      log.insert('a');
+      log.insert(ENTRY_TYPE, 'a');
     }
     expect(log.size()).toEqual(limit);
   });
@@ -38,26 +40,26 @@ describe('import(serializedLog)', () => {
 
     test('non array', () => {
       expect(() => log.import('')).toThrow();
-      expect(() => log.import('{timestamp: "", data: "", id: 2342}')).toThrow();
+      expect(() => log.import('{timestamp: "", data: "", type: "test"}')).toThrow();
     });
 
-    test('without id', () => {
-      const withoutId = JSON.stringify([
+    test('without type', () => {
+      const withoutType = JSON.stringify([
         { timestamp: '2018-01-09T17:20:49.814Z', data: 'test' },
       ]);
-      expect(() => log.import(withoutId)).toThrow();
+      expect(() => log.import(withoutType)).toThrow();
     });
 
     test('without data', () => {
       const withoutData = JSON.stringify([
-        { id: 1515518449814, timestamp: '2018-01-09T17:20:49.814Z' },
+        { type: 'test.data', timestamp: '2018-01-09T17:20:49.814Z' },
       ]);
       expect(() => log.import(withoutData)).toThrow();
     });
 
     test('without timestamp', () => {
       const withoutTimestamp = JSON.stringify([
-        { id: 1515518449814, data: 'test' },
+        { type: 'test.data', data: 'test' },
       ]);
       expect(() => log.import(withoutTimestamp)).toThrow();
     });
@@ -70,9 +72,9 @@ describe('import(serializedLog)', () => {
 
     for (let i = 0; i < 10; i += 1) {
       if (i % 2 == 0) {
-        log1.insert(data[i]);
+        log1.insert(ENTRY_TYPE, data[i]);
       } else {
-        log2.insert(data[i]);
+        log2.insert(ENTRY_TYPE, data[i]);
       }
       // introduce some compute time to vary the insertion times
       delay();
@@ -91,7 +93,7 @@ describe('import(serializedLog)', () => {
 
   test('returns the new log in array form', () => {
     const data = JSON.stringify([
-      { id: 1515518449814, timestamp: '2018-01-09T17:20:49.814Z', data: 'test' },
+      { type: 'test.data', timestamp: '2018-01-09T17:20:49.814Z', data: 'test' },
     ]);
     const log = new History();
     const result = log.import(data);
@@ -106,26 +108,26 @@ describe('import(arrayOfLogItems)', () => {
 
     test('non array', () => {
       expect(() => log.import('')).toThrow();
-      expect(() => log.import({timestamp: "", data: "", id: 2342})).toThrow();
+      expect(() => log.import({timestamp: "", data: "", type: ''})).toThrow();
     });
 
-    test('without id', () => {
-      const withoutId = [
+    test('without type', () => {
+      const withoutType = [
         { timestamp: '2018-01-09T17:20:49.814Z', data: 'test' },
       ];
-      expect(() => log.import(withoutId)).toThrow();
+      expect(() => log.import(withoutType)).toThrow();
     });
 
     test('without data', () => {
       const withoutData = [
-        { id: 1515518449814, timestamp: '2018-01-09T17:20:49.814Z' },
+        { type: 'test.data', timestamp: '2018-01-09T17:20:49.814Z' },
       ];
       expect(() => log.import(withoutData)).toThrow();
     });
 
     test('without timestamp', () => {
       const withoutTimestamp = [
-        { id: 1515518449814, data: 'test' },
+        { type: 'test.data', data: 'test' },
       ];
       expect(() => log.import(withoutTimestamp)).toThrow();
     });
@@ -138,9 +140,9 @@ describe('import(arrayOfLogItems)', () => {
 
     for (let i = 0; i < 10; i += 1) {
       if (i % 2 == 0) {
-        log1.insert(data[i]);
+        log1.insert(ENTRY_TYPE, data[i]);
       } else {
-        log2.insert(data[i]);
+        log2.insert(ENTRY_TYPE, data[i]);
       }
       // introduce some compute time to vary the insertion times
       delay();
@@ -159,7 +161,7 @@ describe('import(arrayOfLogItems)', () => {
 
   test('returns the new log in array form', () => {
     const data = [
-      { id: 1515518449814, timestamp: '2018-01-09T17:20:49.814Z', data: 'test' },
+      { type: 'test.data', timestamp: '2018-01-09T17:20:49.814Z', data: 'test' },
     ];
     const log = new History();
     const result = log.import(data);
@@ -169,6 +171,11 @@ describe('import(arrayOfLogItems)', () => {
 });
 
 describe('insert(obj)', () => {
+  test('throws when not given 2 arguments', () => {
+    const log = new History();
+    expect(() =>log.insert('type')).toThrow();
+  });
+
   test('throws when obj is not an object or a non-empty string', () => {
     const log = new History();
     expect(() =>log.insert(undefined)).toThrow();
@@ -181,23 +188,23 @@ describe('insert(obj)', () => {
 
   test('accepts any string or object as an argument', () => {
     const log = new History();
-    expect(() => log.insert('asdf')).not.toThrow();
-    expect(() => log.insert({})).not.toThrow();
-    expect(() => log.insert({ a: 1 })).not.toThrow();
+    expect(() => log.insert(ENTRY_TYPE, 'asdf')).not.toThrow();
+    expect(() => log.insert(ENTRY_TYPE, {})).not.toThrow();
+    expect(() => log.insert(ENTRY_TYPE, { a: 1 })).not.toThrow();
   });
 
   test('returns an array version of the old log', () => {
     const log = new History();
-    const oldA = log.insert('a');
-    const oldB = log.insert('b');
+    const oldA = log.insert(ENTRY_TYPE, 'a');
+    const oldB = log.insert(ENTRY_TYPE, 'b');
     expect(oldA).toEqual([]);
     expect(oldB.length).toEqual(1);
   });
 
   test('manipulating old log does not change current log', () => {
     const log = new History();
-    log.insert('a');
-    const oldA = log.insert('b');
+    log.insert(ENTRY_TYPE, 'a');
+    const oldA = log.insert(ENTRY_TYPE, 'b');
     oldA.push('c');
     oldA.unshift('d');
     expect(log.size()).toEqual(2);
@@ -225,9 +232,9 @@ describe('newest()', () => {
 
   test('returns the last item inserted into the log', () => {
     const log = new History();
-    log.insert('a');
-    log.insert('b');
-    log.insert('c');
+    log.insert(ENTRY_TYPE, 'a');
+    log.insert(ENTRY_TYPE, 'b');
+    log.insert(ENTRY_TYPE, 'c');
     expect(log.newest().data).toEqual('c');
   });
 });
@@ -240,18 +247,18 @@ describe('oldest()', () => {
 
   test('returns the oldest item inserted into the log', () => {
     const log = new History();
-    log.insert('a');
-    log.insert('b');
-    log.insert('c');
+    log.insert(ENTRY_TYPE, 'a');
+    log.insert(ENTRY_TYPE, 'b');
+    log.insert(ENTRY_TYPE, 'c');
     expect(log.oldest().data).toEqual('a');
   });
 
   test('gets the last item but not past the limit', () => {
     const log = new History({ limit: 3 });
-    log.insert('a');
-    log.insert('b');
-    log.insert('c');
-    log.insert('d');
+    log.insert(ENTRY_TYPE, 'a');
+    log.insert(ENTRY_TYPE, 'b');
+    log.insert(ENTRY_TYPE, 'c');
+    log.insert(ENTRY_TYPE, 'd');
     expect(log.oldest().data).toEqual('b');
   });
 });
@@ -260,7 +267,7 @@ describe('serialize([start], [end])', () => {
   const log = new History({ limit: 5 });
   const data = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
   data.forEach((item) => {
-    log.insert(item);
+    log.insert(ENTRY_TYPE, item);
   });
 
   test('returns an empty array when the log is empty', () => {
@@ -313,7 +320,7 @@ describe('serialize([start], [end])', () => {
       const data = ['a', 'b', 'c', 'd', 'e'];
 
       data.forEach((item) => {
-        logA.insert(item);
+        logA.insert(ENTRY_TYPE, item);
       });
       logB.import(logA.serialize());
       expect(logA.size()).toEqual(data.length);
@@ -352,7 +359,7 @@ describe('setLimit(new limit)', () => {
     const log = new History();
     const data = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
     data.forEach(item => {
-      log.insert(item);
+      log.insert(ENTRY_TYPE, item);
     });
     const newLimit = 3;
 
@@ -366,7 +373,7 @@ describe('toArray([start], [end])', () => {
   const log = new History({ limit: 5 });
   const data = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
   data.forEach((item) => {
-    log.insert(item);
+    log.insert(ENTRY_TYPE, item);
   });
 
   test('returns an empty array when the log is empty', () => {
@@ -415,7 +422,7 @@ describe('toArray([start], [end])', () => {
       const data = ['a', 'b', 'c', 'd', 'e'];
 
       data.forEach((item) => {
-        logA.insert(item);
+        logA.insert(ENTRY_TYPE, item);
       });
       logB.import(logA.toArray());
       expect(logA.size()).toEqual(data.length);
