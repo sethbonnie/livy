@@ -8,7 +8,7 @@ Each entry in the log is automatically timestamped with an id equal to the time 
 
 ```
 {
-  id: <Date.now()>,
+  type: <String>,
   timestamp: <Date.toISOString()>,
   data: <Object|String>
 }
@@ -33,9 +33,10 @@ import History from 'livy';
 // Create a new log that never exceeds 25 items
 const log = new History({ limit: 25 });
 
-log.insert({ type: 'SENT', payload: 'hello there!'});
+// log.insert(<type>, <payload>)
+log.insert('SENT', 'hello there!');
 // Some time later...
-log.insert({ type: 'RECEIVED', payload: 'howdy!'});
+log.insert('RECEIVED', 'howdy!');
 
 // dump the log to JSON
 const serializedJSON = log.serialize();
@@ -51,10 +52,10 @@ const array = log.toArray();
 *Merges the given data into the log where `data` is in the forms given by `serialize()`
 and `toArray()`.*
 
-### `insert(obj)`
+### `insert(type, payload)`
 
-*Inserts the given object into the log with a `timestamp` <DateTime ISO string>
-  and an `id` (`Date.now()` for ordering by insertion time).*
+*Inserts the given type and payload into the log with a 
+generated `timestamp` <DateTime ISO string> value.*
 
 ### `limit()`
 
